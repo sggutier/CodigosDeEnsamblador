@@ -12,5 +12,5 @@
 *.OBJ
 *.BC
 *.MAP
-
+*.COM
 # End of https://www.gitignore.io/api/assembler
