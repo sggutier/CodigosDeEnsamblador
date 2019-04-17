@@ -7,9 +7,9 @@ ENDCDE	DB	00	; END PROCESS INDICATOR
 HANDLE	DW	?
 NUMLEN	DW	66
 IOAREA	DB	10, 66 DUP(' '), '$'
-NUM1	DB	67 DUP(' '), '$'
-NUM2	DB	67 DUP(' '), '$'
-NUM3	DB	'X',66 DUP(' '), '$'
+NUM1	DB	67 DUP('0'), '$'
+NUM2	DB	67 DUP('0'), '$'
+NUM3	DB	67 DUP('0'), '$'
 OPENMSG	DB	'*** Open error ***', 0DH, 0AH
 PATHNAM	DB	'.\NAMEFILE.SRT',0
 READMSG	DB	'*** Read error ***', 0DH, 0AH
@@ -31,12 +31,21 @@ BEGIN	PROC	FAR
 	JNZ	A90	; no, salir
 	LEA	SI,IOAREA	
 	ADD	SI,NUMLEN	;Carga la ultima pos de IOA
-	CALL	W10SRX	;Busca el primero num
 	LEA	DI,NUM3
-	ADD	DI,NUMLEN
 	CALL	W20RPL
-	LEA	SI,NUM3	;Decide imprimir
-	CALL	G10DISP	; si, desplegar nombre,
+	LEA	DI,NUM2	;;Carga numeros de IOA a RAM
+	CALL	W20RPL
+	LEA	DI,NUM1
+	CALL	W20RPL
+	LEA	SI,NUM1
+	LEA	DI,NUM2
+	CALL	W30SUMA	;Suma el puño de cosas
+	LEA	SI,NUM2
+	LEA	DI,NUM3
+	CALL	W30SUMA
+	LEA	SI,NUM3
+	CALL	W40ZS	;Mueve SI hasta no 0's a la izq
+	CALL	G10DISP	;Imprime lo de SI
 A90:			;Fin de procesamiento
 	MOV	AX,4C00H	; salir al DOS
 	INT	21H
@@ -62,7 +71,7 @@ E10OPEN	ENDP
 F10READ	PROC	NEAR
 	MOV	AH,3FH	;Petición de lectura
 	MOV	BX,HANDLE
-	MOV	CX,NUMLEN	;30 para el nombre + 2 para C
+	MOV	CX,NUMLEN	;lee NUMLEN weas
 	LEA	DX,IOAREA+1
 	INT	21H
 	JC	F20	;Error en la la lectura?
@@ -131,7 +140,9 @@ W10SRX	ENDP
 ;              Copia todos los numericos de der a izq de SI a DI
 ;              ------------------
 W20RPL	PROC	NEAR
-LOOWATR:	MOV	AL,[SI]
+	CALL	W10SRX	;Busca el primero num
+	ADD	DI,NUMLEN
+LOOWATR:	MOV	AL,[SI]	;Va copiando mientras sean caracteres numéricos de SI a DI
 	CMP	AL,30H
 	JL	W20EXIT
 	CMP	AL,39H
@@ -144,5 +155,41 @@ LOOWATR:	MOV	AL,[SI]
 W20EXIT:
 	RET
 W20RPL	ENDP
+;	Suma números en SI y DI (en ASCII) y deja el resultado en DI
+;              ------------------------------------------------------------
+W30SUMA	PROC	NEAR
+	ADD	SI,NUMLEN
+	ADD	DI,NUMLEN
+	MOV	BX,DI
+	MOV	CX,NUMLEN
+A20:
+	MOV	AH,00
+	MOV	AL,[SI]
+	ADC	AL,[DI]
+	AAA
+	MOV	[BX],AL
+	DEC	SI
+	DEC	DI
+	DEC	BX
+	LOOP	A20
+	MOV	[BX],AH
+	ADD	BX,NUMLEN
+	MOV	CX,NUMLEN
+	INC	CX
+A30:
+	OR	BYTE PTR[BX],30H
+	DEC	BX
+	LOOP	A30
+	RET
+W30SUMA	ENDP
+;	Mueve SI hasta encontrar algo distinto de 0's a la izquierda
+;	------------------------------------------------------------
+W40ZS	PROC	NEAR
+Z40L:	CMP	BYTE PTR [SI],30H
+	JNE	Z40E
+	INC	SI
+	JMP	Z40L
+Z40E:	RET
+W40ZS	ENDP
 	END	BEGIN
-;;INC	WORD PTR [SI]	
+
