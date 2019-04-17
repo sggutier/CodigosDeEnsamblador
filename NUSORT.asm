@@ -5,13 +5,13 @@ TITLE	NUSORT (EXE) Ordenador de tres numeros
 	.DATA
 ENDCDE	DB	00	; END PROCESS INDICATOR
 HANDLE	DW	?
-NUMLEN	DW	66
-IOAREA	DB	10, 66 DUP(' '), '$'
-NUM1	DB	67 DUP('0'), '$'
-NUM2	DB	67 DUP('0'), '$'
-NUM3	DB	67 DUP('0'), '$'
+NUMLEN	DW	666
+IOAREA	DB	10, 666 DUP(' '), '$'
+NUM1	DB	667 DUP('0'), '$'
+NUM2	DB	667 DUP('0'), '$'
+NUM3	DB	667 DUP('0'), '$'
 OPENMSG	DB	'*** Open error ***', 0DH, 0AH
-PATHNAM	DB	'.\NAMEFILE.SRT',0
+PATHNAM	DB	'.\numeros.txt',0
 READMSG	DB	'*** Read error ***', 0DH, 0AH
 ROW	DB	00
 ;____________________________________________________________
