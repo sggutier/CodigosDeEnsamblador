@@ -7,7 +7,9 @@ ENDCDE	DB	00	; END PROCESS INDICATOR
 HANDLE	DW	?
 NUMLEN	DW	66
 IOAREA	DB	10, 66 DUP(' '), '$'
-NUM1	DB	67 DUP(' ')
+NUM1	DB	67 DUP(' '), '$'
+NUM2	DB	67 DUP(' '), '$'
+NUM3	DB	'X',66 DUP(' '), '$'
 OPENMSG	DB	'*** Open error ***', 0DH, 0AH
 PATHNAM	DB	'.\NAMEFILE.SRT',0
 READMSG	DB	'*** Read error ***', 0DH, 0AH
@@ -30,7 +32,10 @@ BEGIN	PROC	FAR
 	LEA	SI,IOAREA	
 	ADD	SI,NUMLEN	;Carga la ultima pos de IOA
 	CALL	W10SRX	;Busca el primero num
-	LEA	SI,IOAREA
+	LEA	DI,NUM3
+	ADD	DI,NUMLEN
+	CALL	W20RPL
+	LEA	SI,NUM3	;Decide imprimir
 	CALL	G10DISP	; si, desplegar nombre,
 A90:			;Fin de procesamiento
 	MOV	AX,4C00H	; salir al DOS
@@ -78,7 +83,7 @@ F10READ	ENDP
 G10DISP	PROC	NEAR
 	CALL	Q20CURS
 	MOV	AH,09H
-	LEA	DX,IOAREA
+	MOV	DX,SI
 	INT	21H
 	RET
 G10DISP	ENDP
@@ -120,9 +125,24 @@ LOOPBNM:	MOV	AL,[SI]
 	JLE	W10SAL
 W10CNT:	DEC	SI
 	JMP	LOOPBNM
-W10SAL:	INC	WORD PTR [SI]	
+W10SAL:
 	RET
 W10SRX	ENDP
+;              Copia todos los numericos de der a izq de SI a DI
+;              ------------------
+W20RPL	PROC	NEAR
+LOOWATR:	MOV	AL,[SI]
+	CMP	AL,30H
+	JL	W20EXIT
+	CMP	AL,39H
+	JG	W20EXIT
+	MOV	AH,BYTE PTR [SI]
+	MOV	BYTE PTR [DI],AH
+	DEC	DI
+	DEC	SI
+	JMP	LOOWATR
+W20EXIT:
+	RET
+W20RPL	ENDP
 	END	BEGIN
-	
-	
+;;INC	WORD PTR [SI]	
