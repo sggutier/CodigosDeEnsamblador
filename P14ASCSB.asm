@@ -1,0 +1,40 @@
+TITLE	P14ASSUB (COM) Resta de números ASCII
+	.MODEL SMALL
+	.CODE
+	ORG	100H
+BEGIN:	JMP	SHORT MAIN
+;_______________________________________________________________
+ASC1	DB	'999'	;Datos
+ASC2	DB	'830'
+ASCRTA	DB	'0000','$'
+;_______________________________________________________________
+MAIN	PROC	NEAR
+	CLC
+	LEA	SI,ASC1+2
+	LEA	DI,ASC2+2
+	LEA	BX,ASCRTA+3
+	MOV	CX,03
+A20:
+	MOV	AH,00
+	MOV	AL,[SI]
+	SUB	AL,[DI]
+	AAS
+	MOV	[BX],AL
+	DEC	SI
+	DEC	DI
+	DEC	BX
+	LOOP	A20
+	MOV	[BX],AH
+	LEA	BX,ASCRTA+3
+	MOV	CX,04
+A30:
+	OR	BYTE PTR[BX],30H
+	DEC	BX
+	LOOP	A30
+	MOV	AH,09H
+	LEA	DX,ASCRTA
+	INT	21H
+	MOV	AX,4C00H
+	INT	21H
+MAIN	ENDP
+	END	BEGIN
